@@ -23,7 +23,7 @@ def load_reminders():
     if os.path.exists(REMINDER_FILE) and os.path.getsize(REMINDER_FILE) > 0:
         with open(REMINDER_FILE, 'r') as f:
             return json.load(f)
-    return {}
+    return []
 
 
 def save_reminders(reminders):
@@ -40,14 +40,17 @@ async def check_reminders():
     reminders = load_reminders()
     now_datetime = datetime.strptime(now, "%H:%M")
 
+    reminders_to_keep = []
+
     for reminder in reminders:
         reminder_time = datetime.strptime(reminder["time"], "%H:%M")
         if reminder_time <= now_datetime:
             channel = bot.get_channel(reminder["channel"])
             await channel.send(f"Reminder for <@{reminder['author']}>: {reminder['reminder']}")
-            reminders.remove(reminder)
+        else:
+            reminders_to_keep.append(reminder)
 
-    save_reminders(reminders)
+    save_reminders(reminders_to_keep)
 
 
 # Events
@@ -68,6 +71,8 @@ async def add(ctx, time, *, message: str):
     except ValueError:
         await ctx.send("Invalid time format. Please use HH:MM")
         return
+
+    print(reminder_time)
 
     reminders = load_reminders()
     reminders.append({
