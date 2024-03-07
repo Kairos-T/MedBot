@@ -38,15 +38,20 @@ def save_reminders(reminders):
 async def check_reminders():
     reminders = load_reminders()
     now = datetime.now()
-    for reminder in reminders:
+
+    reminders_copy = reminders.copy()
+
+    for reminder in reminders_copy:
         reminder_time = datetime.strptime(reminder["time"], "%H:%M")
         if reminder_time <= now:
             channel = bot.get_channel(reminder["channel"])
             if channel:
                 await channel.send(f"Reminder for <@{reminder['author']}>: {reminder['reminder']}")
                 reminders.remove(reminder)
+                save_reminders(reminders)
             else:
                 print(f"Channel not found for reminder: {reminder}")
+
 
 # Events
 
