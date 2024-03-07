@@ -76,3 +76,5 @@ async def add(ctx, time, *, message: str):
 
 
 bot.run(token)
+check_reminders.start()
+
