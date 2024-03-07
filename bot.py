@@ -37,13 +37,16 @@ def save_reminders(reminders):
 @tasks.loop(seconds=10)
 async def check_reminders():
     reminders = load_reminders()
-    now = datetime.now().strftime("%H:%M")
+    now = datetime.now()
     for reminder in reminders:
-        if reminder["time"] <= now:
+        reminder_time = datetime.strptime(reminder["time"], "%H:%M")
+        if reminder_time <= now:
             channel = bot.get_channel(reminder["channel"])
-            await channel.send(f"Reminder for <@{reminder['author']}>: {reminder['reminder']}")
-            reminders.remove(reminder)
-
+            if channel:
+                await channel.send(f"Reminder for <@{reminder['author']}>: {reminder['reminder']}")
+                reminders.remove(reminder)
+            else:
+                print(f"Channel not found for reminder: {reminder}")
 
 # Events
 
@@ -51,6 +54,7 @@ async def check_reminders():
 @bot.event
 async def on_ready():
     print(f'{bot.user.name} has connected to Discord!')
+    check_reminders.start()
 
 # Commands
 
@@ -76,5 +80,4 @@ async def add(ctx, time, *, message: str):
 
 
 bot.run(token)
-check_reminders.start()
 
